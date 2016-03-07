@@ -1,0 +1,2 @@
+== Incedible application where you can Create Read and Update pages!
+(Training with regex and routing)

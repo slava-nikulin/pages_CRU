@@ -1,0 +1,20 @@
+%h3
+  Edit page:
+  = page_path_title @current_page.path
+
+= form_for @current_page, url: update_page_path(page_path: @current_page.path) do |f|
+  = hidden_field_tag :id, @current_page.id
+  %table
+    %tr
+      %td
+        = f.label :title
+      %td
+        = f.text_field :title
+    %tr
+      %td
+        = f.label :content
+      %td
+        = f.text_area :content
+    %tr
+      %td{ colspan: 2 }
+        = f.submit

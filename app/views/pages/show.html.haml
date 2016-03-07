@@ -1,0 +1,9 @@
+%h1
+  = @current_page.title
+%table
+  %tr
+    %td
+      != get_sub_tree(@current_page)
+  %tr
+    %td
+      = @current_page.content.html_safe

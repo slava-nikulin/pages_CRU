@@ -1,0 +1,11 @@
+development:
+  adapter: postgresql
+  encoding: unicode
+  database: pages_cru_dev
+  username: postgres
+
+test:
+  adapter: postgresql
+  encoding: unicode
+  database: pages_cru_test
+  username: postgres
