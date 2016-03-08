@@ -7,6 +7,7 @@ module PagesHelper
     end
   end
 
+  #Use this in views
   def get_sub_tree(page)
     if page.name.nil?
       return "<ul>#{sub_tree_without_root(page)}</ul>" 
@@ -23,10 +24,17 @@ module PagesHelper
     html << "</li></ul>"
   end
 
+  #pages list for root page, 
+  #it's different than list for normal page, unfortunatelly
   def sub_tree_without_root(page)
     html = ""
     page.sub_pages.each do |sub_page|
-      html << "<li>#{sub_page.name}<ul>#{sub_tree_without_root(sub_page)}</ul></li>"
+      if sub_page.sub_pages.any?
+        html <<
+         "<li>#{sub_page.name}<ul>#{sub_tree_without_root(sub_page)}</ul></li>"
+      else
+        html << "<li>#{sub_page.name}</li>"
+      end
     end
     return html
   end

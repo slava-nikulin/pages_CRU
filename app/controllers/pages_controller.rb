@@ -1,5 +1,5 @@
 class PagesController < ApplicationController
-  before_action :page_path_validate, only: [:new, :create, :show, :edit]
+  before_action :get_current_page_by_path, only: [:new, :create, :show, :edit]
 
   def index
     render "pages/index"
@@ -17,8 +17,9 @@ class PagesController < ApplicationController
 
   def create
     new_page = Page.new(add_page_params)
-    new_page.content = text_to_html(new_page.content)
+    new_page.content_to_html
     new_page.parent_page = @current_page
+
     if new_page.save
       redirect_to show_page_path(page_path: new_page.path)
     else
@@ -28,15 +29,18 @@ class PagesController < ApplicationController
   end
 
   def edit
-    @current_page.content = html_to_text(@current_page.content)
+    return redirect_to root_path if @current_page.nil?
+    @current_page.content_to_text
     render "pages/edit"
   end
 
   def update
+    params.require(:id)
     current_page = Page.find(params[:id])
-    new_attributes = edit_page_params
-    new_attributes[:content] = text_to_html(new_attributes[:content])
-    if current_page.update_attributes(new_attributes)
+    current_page.assign_attributes(edit_page_params)
+    current_page.content_to_html
+
+    if current_page.save
       redirect_to show_page_path(page_path: current_page.path)
     else
       @current_page = current_page
@@ -45,46 +49,11 @@ class PagesController < ApplicationController
   end
 
   private
-  def text_to_html(text)
-    if text =~ /(\*\*\[(?:.*)\]\*\*)/
-      text.gsub!(/(\*\*\[(?:.*)\]\*\*)/, "<b>#{$1[/\*\*\[(.*)\]\*\*/, 1].gsub('\\', '\\\\\\\\')}</b>")
-    end
-    if text =~ /(\\\\\[(?:.*)\]\\\\)/
-      text.gsub!(/(\\\\\[(?:.*)\]\\\\)/, "<i>#{$1[/\\\\\[(.*)\]\\\\/, 1].gsub('\\', '\\\\\\\\')}</i>")
-    end
-    if text =~ /\(\(((?:(?:[^\/])*(?:\/|\s))*)(\[(?:.*)\])\)\)/
-      text.gsub!(/\(\(((?:(?:[^\/])*(?:\/|\s))*)(\[(?:.*)\])\)\)/,
-       "<a href='#{$1}'>#{$2}</a>")
-    end
-    text
-  end
-
-  def html_to_text(text)
-    if text =~ /(<b>(?:.*)<\/b>)/
-      text.gsub!(/(<b>(?:.*)<\/b>)/, "**[#{$1[/<b>(.*)<\/b>/, 1]}]**")
-    end
-    if text =~ /(<i>(?:.*)<\/i>)/
-      text.gsub!(/(<i>(?:.*)<\/i>)/, "\\\\\\\\[#{$1[/<i>(.*)<\/i>/, 1]}]\\\\\\\\")
-    end
-    if text =~ /<a href="((?:(?:(?:[^\/"\[]))*(?:\/))*[^"]*)\".\[(.*)\]/
-      text.gsub!(/<a href="((?:(?:(?:[^\/"\[]))*(?:\/))*[^"]*)\".\[(.*)\]/,
-       "((#{$1} [#{$2}]))")
-    end
-    text
-  end
-
-  def page_path_validate
+  
+  def get_current_page_by_path
     return if params[:page_path].nil?
-    current = previous = nil
-
-    path_invalid = params[:page_path].split("/").select do |x|
-      !x.empty? 
-    end.any? do |name|
-      current = Page.find_by(name: name, parent_page: previous)
-      @current_page = previous = current
-      current.nil?
-    end
-    redirect_to root_path if path_invalid
+    redirect_to root_path if Page.path_valid?(params[:page_path])
+    @current_page = Page.get_page_by_path params[:page_path]
   end
 
   def add_page_params
