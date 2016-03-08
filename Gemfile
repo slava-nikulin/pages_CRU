@@ -57,3 +57,7 @@ group :test do
   gem 'database_cleaner', '~> 1.5', '>= 1.5.1'
   gem 'rake'
 end
+
+group :production do
+  gem 'rails_12factor'
+end
