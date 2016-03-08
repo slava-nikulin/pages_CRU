@@ -10,7 +10,7 @@ module PagesHelper
   #Use this in views
   def get_sub_tree(page)
     if page.name.nil?
-      if Page.count > 0
+      if Page.all.count > 0
         return "<ul>#{sub_tree_without_root(page)}</ul>" 
       else
         return ""
